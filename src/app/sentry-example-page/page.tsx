@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import Head from "next/head"
-import * as Sentry from "@sentry/nextjs"
+import Head from "next/head";
+import * as Sentry from "@sentry/nextjs";
 
 export default function Page() {
   return (
@@ -55,12 +55,12 @@ export default function Page() {
                 op: "test",
               },
               async () => {
-                const res = await fetch("/api/sentry-example-api")
+                const res = await fetch("/api/sentry-example-api");
                 if (!res.ok) {
-                  throw new Error("Sentry Example Frontend Error")
+                  throw new Error("Sentry Example Frontend Error");
                 }
               },
-            )
+            );
           }}
         >
           Throw error!
@@ -68,7 +68,7 @@ export default function Page() {
 
         <p>
           Next, look for the error on the{" "}
-          <a href="https://loutresan.sentry.io/issues/?project=4508149727363152">Issues Page</a>.
+          <a href="https://loutresan.sentry.io/issues/?project=4508157047603280">Issues Page</a>.
         </p>
         <p style={{ marginTop: "24px" }}>
           For more information, see{" "}
@@ -78,5 +78,5 @@ export default function Page() {
         </p>
       </main>
     </div>
-  )
+  );
 }
