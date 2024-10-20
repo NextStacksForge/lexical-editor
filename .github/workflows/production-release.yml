@@ -1,0 +1,81 @@
+name: Sentry Release Production
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+    
+
+jobs:
+  generate_git_tag:
+    runs-on: ubuntu-latest
+   
+    outputs:
+      new_tag: ${{ steps.taggerFinal.outputs.new_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Generate Final Version
+        id: taggerFinal
+        uses: anothrNick/github-tag-action@1.67.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+          WITH_V: true
+          DEFAULT_BUMP: patch
+          RELEASE_BRANCHES: main,master
+      
+      - name: Echo New Tag Version
+        run: echo "The next tag version will be - ${{ steps.taggerFinal.outputs.new_tag }}"
+
+  generate_git_release:
+    needs: generate_git_tag
+   
+    name: "Github Release"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Release Action
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.generate_git_tag.outputs.new_tag }}
+          token: ${{ secrets.PAT }}
+
+  generate_sentry_release:
+    needs: [generate_git_tag, generate_git_release]
+   
+    name: Sentry Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Split Repo Name
+        uses: jungwinter/split@v2
+        id: split_repo_name
+        with:
+          msg: ${{ github.repository }}
+          separator: "/"
+          maxsplit: 1
+      
+      - name: Echo Repo Name
+        run: echo "${{ steps.split_repo_name.outputs._1 }}"
+      
+      - name: Sentry Release
+        uses: getsentry/action-release@v1.7.0
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        with:
+          environment: production
+          version: "${{ steps.split_repo_name.outputs._1 }}@${{ needs.generate_git_tag.outputs.new_tag }}"
+          sourcemaps: "./src"
+          url_prefix: "~"

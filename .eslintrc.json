@@ -1,0 +1,12 @@
+{
+  "extends": ["next/core-web-vitals", "next/typescript", "plugin:storybook/recommended", "prettier"],
+  "plugins": ["prettier"],
+  "rules": {
+    "prettier/prettier": ["error", {
+      "semi": true,
+      "singleQuote": false,
+      "printWidth": 120,
+      "tabWidth": 2
+    }],
+  }
+}

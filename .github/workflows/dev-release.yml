@@ -1,0 +1,73 @@
+name: Sentry Release Development
+
+on:
+  push:
+    branches:
+      - devs
+
+jobs:
+  generate_dev_tag:
+    runs-on: ubuntu-latest
+    outputs:
+      new_tag: ${{ steps.taggerDev.outputs.new_tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Development Version
+        id: taggerDev
+        uses: anothrNick/github-tag-action@1.67.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+          WITH_V: true
+          DEFAULT_BUMP: patch
+          RELEASE_BRANCHES: devs
+          TAG_CONTEXT: branch
+          PRESET_TYPE: dev
+
+  create_github_release:
+    needs: generate_dev_tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.generate_dev_tag.outputs.new_tag }}
+          name: Release ${{ needs.generate_dev_tag.outputs.new_tag }}
+          body: ${{ steps.release_notes.outputs.RELEASE_NOTES }}
+          draft: false
+          prerelease: true
+          token: ${{ secrets.PAT }}
+
+  create_dev_sentry_release:
+    needs: [generate_dev_tag, create_github_release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1.7.0
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        with:
+          environment: development
+          version: ${{ needs.generate_dev_tag.outputs.new_tag }}
+          sourcemaps: "./src"
+          url_prefix: "~"
+
+      - name: Echo Release Info
+        run: |
+          echo "Created development release: ${{ needs.generate_dev_tag.outputs.new_tag }}"
+          echo "Environment: development"
