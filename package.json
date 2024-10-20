@@ -1,5 +1,5 @@
 {
-  "name": "next-stack",
+  "name": "lexical-editor",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -18,11 +18,9 @@
     "coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "watch": "concurrently --names 'TS,JEST' -c 'red,blue' \"npm run watch-build\" \"npm run watch-test\"",
-    "test:e2e": "playwright test",
-    "sentry:release": "sentry-cli releases new $npm_package_version && sentry-cli releases set-commits $npm_package_version --auto && sentry-cli releases finalize $npm_package_version"
+    "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@sentry/nextjs": "^8.34.0",
     "@stripe/stripe-js": "^4.8.0",
     "axe-playwright": "^2.0.3",
     "axios": "^1.7.7",
